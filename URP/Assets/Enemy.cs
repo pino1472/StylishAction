@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -11,6 +10,7 @@ public class Enemy : MonoBehaviour
     [SerializeField] float CoolTime;
     [SerializeField] bool DeathTrigger;
     [SerializeField] int EnemyHp = 10;
+    public bool IsStopping { get; private set; }
     NavMeshAgent nav;
     // Start is called before the first frame update
     void Start()
@@ -25,11 +25,11 @@ public class Enemy : MonoBehaviour
             if (FenceCheck())
             {
                 StartCoroutine(Shoot());
-                nav.isStopped = true;
+                nav.isStopped = IsStopping;
             }
             else
             {
-                nav.isStopped = false;
+                nav.isStopped = IsStopping;
                 nav.SetDestination(Goal.position);
             }
 
@@ -63,9 +63,20 @@ public class Enemy : MonoBehaviour
             if (hit.collider.CompareTag("Fence"))
             {
                 Debug.Log("RayがFenceに当たった");
+                IsStopping = true;
                 return true;
             }
+            else if (hit.collider.CompareTag("Enemy"))
+            {
+                if (hit.collider.gameObject)
+                    if (hit.collider.gameObject.GetComponent<Enemy>().IsStopping)
+                    {
+                        IsStopping = true;
+                        return true;
+                    }
+            }
         }
+        IsStopping = false;
         return false;
     }
 
